@@ -18,6 +18,29 @@ namespace ConstructionCS
             NameSyntax name = IdentifierName("System");
             name = QualifiedName(name, IdentifierName("Collections"));
             name = QualifiedName(name, IdentifierName("Generic"));
+
+            SyntaxTree tree = CSharpSyntaxTree.ParseText(
+@"using System;
+using System.Collections;
+using System.Linq;
+using System.Text;
+
+namespace HelloWorld
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            Console.WriteLine(""Hello, World!"");
+        }
+    }
+}");
+
+            var root = (CompilationUnitSyntax)tree.GetRoot();
+            var oldUsing = root.Usings[1];
+            var newUsing = oldUsing.WithName(name);
+            root = root.ReplaceNode(oldUsing, newUsing);
+            Console.WriteLine(root.ToString());
         }
     }
 }
