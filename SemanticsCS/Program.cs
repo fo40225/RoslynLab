@@ -35,6 +35,15 @@ namespace HelloWorld
                                                     MetadataReference.CreateFromFile(
                                                         typeof(object).Assembly.Location))
                                                .AddSyntaxTrees(tree);
+
+            var model = compilation.GetSemanticModel(tree);
+            var nameInfo = model.GetSymbolInfo(root.Usings[0].Name);
+            var systemSymbol = (INamespaceSymbol)nameInfo.Symbol;
+
+            foreach (var ns in systemSymbol.GetNamespaceMembers())
+            {
+                Console.WriteLine(ns.Name);
+            }
         }
     }
 }
