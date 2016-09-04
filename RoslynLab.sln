@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UsingCollectorCS", "UsingCo
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SemanticsCS", "SemanticsCS\SemanticsCS.csproj", "{5DC6CE70-7F06-4853-A661-D68567C8911C}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConstructionCS", "ConstructionCS\ConstructionCS.csproj", "{E7B27C2C-4C95-40A6-AA84-D24B184DB407}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x86 = Debug|x86
@@ -27,6 +29,10 @@ Global
 		{5DC6CE70-7F06-4853-A661-D68567C8911C}.Debug|x86.Build.0 = Debug|x86
 		{5DC6CE70-7F06-4853-A661-D68567C8911C}.Release|x86.ActiveCfg = Release|x86
 		{5DC6CE70-7F06-4853-A661-D68567C8911C}.Release|x86.Build.0 = Release|x86
+		{E7B27C2C-4C95-40A6-AA84-D24B184DB407}.Debug|x86.ActiveCfg = Debug|x86
+		{E7B27C2C-4C95-40A6-AA84-D24B184DB407}.Debug|x86.Build.0 = Debug|x86
+		{E7B27C2C-4C95-40A6-AA84-D24B184DB407}.Release|x86.ActiveCfg = Release|x86
+		{E7B27C2C-4C95-40A6-AA84-D24B184DB407}.Release|x86.Build.0 = Release|x86
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
