@@ -44,6 +44,27 @@ namespace HelloWorld
             {
                 Console.WriteLine(ns.Name);
             }
+
+            var helloWorldString = root.DescendantNodes()
+                                       .OfType<LiteralExpressionSyntax>()
+                                       .First();
+            var literalInfo = model.GetTypeInfo(helloWorldString);
+
+            var stringTypeSymbol = (INamedTypeSymbol)literalInfo.Type;
+
+            Console.Clear();
+
+            var methodNames = stringTypeSymbol.GetMembers()
+                                              .OfType<IMethodSymbol>()
+                                              .Where(m => m.ReturnType.Equals(stringTypeSymbol)
+                                                          &&
+                                                          m.DeclaredAccessibility == Accessibility.Public)
+                                              .Select(m => m.Name)
+                                              .Distinct();
+            foreach (var name in methodNames)
+            {
+                Console.WriteLine(name);
+            }
         }
     }
 }
