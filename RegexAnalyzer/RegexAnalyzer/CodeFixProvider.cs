@@ -12,13 +12,14 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Formatting;
 
 namespace RegexAnalyzer
 {
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(RegexAnalyzerCodeFixProvider)), Shared]
     public class RegexAnalyzerCodeFixProvider : CodeFixProvider
     {
-        private const string title = "Make uppercase";
+        private const string title = "Fix regex";
 
         public sealed override ImmutableArray<string> FixableDiagnosticIds
         {
@@ -43,34 +44,39 @@ namespace RegexAnalyzer
             var diagnosticSpan = diagnostic.Location.SourceSpan;
 
             // Find the type declaration identified by the diagnostic.
-            var declaration = root.FindToken(diagnosticSpan.Start).Parent.AncestorsAndSelf().OfType<TypeDeclarationSyntax>().First();
+            var invocationExpr = root.FindToken(diagnosticSpan.Start).Parent.AncestorsAndSelf().OfType<InvocationExpressionSyntax>().First();
 
             // Register a code action that will invoke the fix.
             context.RegisterCodeFix(
                 CodeAction.Create(
                     title: title,
-                    createChangedSolution: c => MakeUppercaseAsync(context.Document, declaration, c),
+                    createChangedDocument: c => FixRegexAsync(context.Document, invocationExpr, c),
                     equivalenceKey: title),
                 diagnostic);
         }
 
-        private async Task<Solution> MakeUppercaseAsync(Document document, TypeDeclarationSyntax typeDecl, CancellationToken cancellationToken)
+        private async Task<Document> FixRegexAsync(Document document, InvocationExpressionSyntax invocationExpr, CancellationToken cancellationToken)
         {
-            // Compute new uppercase name.
-            var identifierToken = typeDecl.Identifier;
-            var newName = identifierToken.Text.ToUpperInvariant();
-
-            // Get the symbol representing the type to be renamed.
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken);
-            var typeSymbol = semanticModel.GetDeclaredSymbol(typeDecl, cancellationToken);
+            var memberAccessExpr = invocationExpr.Expression as MemberAccessExpressionSyntax;
+            var memberSymbol = semanticModel.GetSymbolInfo(memberAccessExpr).Symbol as IMethodSymbol;
+            var argumentList = invocationExpr.ArgumentList as ArgumentListSyntax;
+            var regexLiteral = argumentList.Arguments[1].Expression as LiteralExpressionSyntax;
+            var regexOpt = semanticModel.GetConstantValue(regexLiteral);
+            var regex = regexOpt.Value as string;
 
-            // Produce a new solution that has all references to that type renamed, including the declaration.
-            var originalSolution = document.Project.Solution;
-            var optionSet = originalSolution.Workspace.Options;
-            var newSolution = await Renamer.RenameSymbolAsync(document.Project.Solution, typeSymbol, newName, optionSet, cancellationToken).ConfigureAwait(false);
+            var newLiteral = SyntaxFactory.ParseExpression("\"valid regex\"")
+                                          .WithLeadingTrivia(regexLiteral.GetLeadingTrivia())
+                                          .WithTrailingTrivia(regexLiteral.GetTrailingTrivia())
+                                          .WithAdditionalAnnotations(Formatter.Annotation);
 
-            // Return the new solution with the now-uppercase type name.
-            return newSolution;
+            var root = await document.GetSyntaxRootAsync();
+
+            var newRoot = root.ReplaceNode(regexLiteral, newLiteral);
+
+            var newDocument = document.WithSyntaxRoot(newRoot);
+
+            return newDocument;
         }
     }
 }
