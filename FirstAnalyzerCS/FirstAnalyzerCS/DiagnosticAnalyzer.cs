@@ -62,6 +62,32 @@ namespace FirstAnalyzerCS
                 {
                     return;
                 }
+
+                var variableTypeName = localDeclaration.Declaration.Type;
+                var variableType = context.SemanticModel.GetTypeInfo(variableTypeName).ConvertedType;
+
+                var conversion = context.SemanticModel.ClassifyConversion(initializer.Value, variableType);
+                if (!conversion.Exists || conversion.IsUserDefined)
+                {
+                    return;
+                }
+
+                // Special cases:
+                //  * If the constant value is a string, the type of the local declaration
+                //    must be System.String.
+                //  * If the constant value is null, the type of the local declaration must
+                //    be a reference type.
+                if (constantValue.Value is string)
+                {
+                    if (variableType.SpecialType != SpecialType.System_String)
+                    {
+                        return;
+                    }
+                }
+                else if (variableType.IsReferenceType && constantValue.Value != null)
+                {
+                    return;
+                }
             }
 
             // Perform data flow analysis on the local declaration.
